@@ -61,9 +61,11 @@ def _load_registry(file: str) -> dict[str, list[str]]:
 
 	return ret
 
+def _object_gcs_path(name: str, hash: str) -> str:
+	return f'genvm_runners/{name}/{hash}.tar'
 
 def _download_single(name: str, hash: str) -> bytes:
-	url = f'https://storage.googleapis.com/gh-af/genvm_runners/{name}-{hash}.tar'
+	url = f'https://storage.googleapis.com/gh-af/{_object_gcs_path(name, hash)}'
 	with urllib.request.urlopen(url) as f:
 		return f.read()
 
@@ -102,7 +104,7 @@ def _upload_single(name: str, hash: str, contents: bytes, *, token: str):
 	if not genvm_runners_registry.check_bytes(contents, hash):
 		raise ValueError('hash mismatch')
 
-	object_name = urllib.parse.quote_plus(f'genvm_runners/{id}/{hash}.tar')
+	object_name = urllib.parse.quote_plus(_object_gcs_path(name, hash))
 
 	upload_url = f'https://storage.googleapis.com/upload/storage/v1/b/gh-af/o?uploadType=media&name={object_name}'
 
@@ -135,6 +137,7 @@ def run_upload(args):
 	for name, hashes in registry.items():
 		for hash in hashes:
 			try:
+				print(f'trying {name}:{hash} ...')
 				data = root.joinpath(name, hash + '.tar').read_bytes()
 				_upload_single(name, hash, data, token=token)
 			except Exception as e:
