@@ -14,14 +14,14 @@
 			# list[{id, hash, derivation}]
 			allRunnersList = import ./generations {};
 			merge = l: r:
-				l //
-				((if builtins.hasAttr r.id l then l.${r.id} else {}) //
-					{
-						"${r.hash}" = r.derivation;
-					});
+				let
+					l_elem = if builtins.hasAttr r.id l then l.${r.id} else {};
+				in
+					l // { "${r.id}" = l_elem // r; };
 			allRunners = builtins.foldl' merge {} allRunnersList;
 		in {
-			registry =  builtins.mapAttrs (name: val: builtins.attrNames val) allRunners;
+			registry = builtins.mapAttrs (name: val: builtins.convertHash { hash = val.hash; toHashFormat = "nix32"; }) allRunners;
 			derivations = allRunners;
+			allRunnersList = allRunnersList;
 		};
 }

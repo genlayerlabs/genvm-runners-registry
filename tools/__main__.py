@@ -80,11 +80,20 @@ def run_download(args):
 	for name, hashes in registry.items():
 		for hash in hashes:
 			try:
+				cur_dst = dst.joinpath(name, hash + '.tar')
+
+				if cur_dst.exists():
+					data = cur_dst.read_bytes()
+					if genvm_runners_registry.check_bytes(data, hash):
+						print(f'info: already exists {name}:{hash}, skipping')
+						continue
+					print(f'err: exists corrupted {name}:{hash}, removing')
+					cur_dst.unlink()
+
 				data = _download_single(name, hash)
 				if not genvm_runners_registry.check_bytes(data, hash):
 					raise ValueError('hash mismatch')
 
-				cur_dst = dst.joinpath(name, hash + '.tar')
 				cur_dst.parent.mkdir(parents=True, exist_ok=True)
 
 				cur_dst.write_bytes(data)
