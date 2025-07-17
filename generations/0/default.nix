@@ -14,5 +14,6 @@ let
 				submodules = true;
 			};
 		in
-			import "${src}/runners";
+			builtins.map (x: x // { inherit rev; }) (import "${src}/runners")
+		;
 in builtins.concatLists (builtins.map mapRev revs)
