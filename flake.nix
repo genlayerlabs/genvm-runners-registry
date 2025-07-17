@@ -11,6 +11,6 @@
 
 			lib = pkgs.lib;
 
-			data = import ./default;
+			data = import ./default.nix;
 		in data;
 }
